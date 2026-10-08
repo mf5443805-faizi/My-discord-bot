@@ -19,7 +19,7 @@ async def on_message(message):
 
     try:
         response = gemini_client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-flash-latest',
             contents=message.content
         )
         await message.channel.send(response.text)

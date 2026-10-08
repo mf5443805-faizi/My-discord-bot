@@ -17,13 +17,26 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    try:
-        response = gemini_client.models.generate_content(
-            model='gemini-flash-latest',
-            contents=message.content
-        )
-        await message.channel.send(response.text)
-    except Exception as e:
-        await message.channel.send(f"Error details: {str(e)}")
+    # Try different models if one is experiencing high demand
+    models_to_try = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-3.5-flash']
+    response_text = None
+    last_error = None
+
+    for model_name in models_to_try:
+        try:
+            response = gemini_client.models.generate_content(
+                model=model_name,
+                contents=message.content
+            )
+            response_text = response.text
+            break # Agar response mil gaya toh loop break kar do
+        except Exception as e:
+            last_error = e
+            continue
+
+    if response_text:
+        await message.channel.send(response_text)
+    else:
+        await message.channel.send(f"Error details: {str(last_error)}")
 
 client.run(os.getenv('DISCORD_TOKEN'))

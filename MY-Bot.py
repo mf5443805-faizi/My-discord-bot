@@ -48,12 +48,23 @@ async def on_message(message):
         ),
     ]
 
+    # Funny aur emojis wala style set karne ke liye system instruction
+    system_instruction = (
+        "Aap ek bohot hi mazedaar, hasmukh aur funny Discord AI bot hain. "
+        "Aapke jawabat mein hamesha bohot saare emojis ✨😂🔥, mazedaar andaaz, "
+        "aur doston jaisi vibe honi chahiye taake parhne wala impress ho jaye aur hans parhe. "
+        "Lekin iska matlab yeh nahi ke aap information galat dein; baat achi tarah samjhana hai lekin style zabardast hona chahiye!"
+    )
+
     for model_name in MODELS_TO_TRY:
         try:
             if channel_id not in channel_chats:
                 channel_chats[channel_id] = gemini_client.chats.create(
                     model=model_name,
-                    config=types.GenerateContentConfig(safety_settings=safety_settings)
+                    config=types.GenerateContentConfig(
+                        safety_settings=safety_settings,
+                        system_instruction=system_instruction
+                    )
                 )
             
             chat_session = channel_chats[channel_id]
@@ -69,9 +80,7 @@ async def on_message(message):
             continue
 
     if response_text:
-        # Limit ko 5000 characters tak extend kar diya gaya hai (Discord ki limit ki wajah se ye tukron mein jaye ga)
         max_length = 5000
-        # Agar jawab lamba ho toh usay safe chunks mein split karke bhejein (har chunk max 2000 characters ka hoga taake Discord accept kare)
         for i in range(0, min(len(response_text), max_length), 2000):
             await message.channel.send(response_text[i:i+2000])
     else:
